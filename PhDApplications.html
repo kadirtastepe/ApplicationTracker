@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhD Applications Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 0.85em;
+        }
+        th, td {
+            padding: 8px 6px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .num-cell {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            width: 30px;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .days-cell {
+            font-weight: bold;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        /* Color scheme based on days */
+        .days-0-7 { background-color: #d4edda; color: #155724; }
+        .days-8-14 { background-color: #d1ecf1; color: #0c5460; }
+        .days-15-30 { background-color: #cce5ff; color: #004085; }
+        .days-31-50 { background-color: #fff3cd; color: #856404; }
+        .days-51-75 { background-color: #ffe0b2; color: #e65100; }
+        .days-76-100 { background-color: #ffccbc; color: #d84315; }
+        .days-101-plus { background-color: #f8d7da; color: #721c24; }
+    </style>
+    <script>
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.trim() === '') return null;
+            
+            // Handle formats like "7.6.2025" or "01.01.26"
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                let day = parseInt(parts[0]);
+                let month = parseInt(parts[1]) - 1; // Month is 0-indexed
+                let year = parseInt(parts[2]);
+                
+                // Handle 2-digit years
+                if (year < 100) {
+                    year += 2000;
+                }
+                
+                return new Date(year, month, day);
+            }
+            return null;
+        }
+        
+        function calculateDays(appDateStr, respDateStr) {
+            const appDate = parseDate(appDateStr);
+            if (!appDate) return null;
+            
+            const endDate = respDateStr && respDateStr.trim() !== '' 
+                ? parseDate(respDateStr) 
+                : new Date();
+            
+            if (!endDate) return null;
+            
+            const diffTime = Math.abs(endDate - appDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+        
+        function getColorClass(days) {
+            if (days <= 7) return 'days-0-7';
+            if (days <= 14) return 'days-8-14';
+            if (days <= 30) return 'days-15-30';
+            if (days <= 50) return 'days-31-50';
+            if (days <= 75) return 'days-51-75';
+            if (days <= 100) return 'days-76-100';
+            return 'days-101-plus';
+        }
+        
+        function updateDays() {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 8) return;
+                
+                const appDateCell = cells[5]; // Date of Application
+                const respDateCell = cells[6]; // Date of Response
+                const daysCell = cells[7]; // Days Past
+                
+                const appDateStr = appDateCell.textContent.trim();
+                const respDateStr = respDateCell.textContent.trim();
+                
+                const days = calculateDays(appDateStr, respDateStr);
+                
+                if (days !== null) {
+                    daysCell.textContent = days + (days === 1 ? ' day' : ' days');
+                    
+                    // Only apply color if no response date (pending application)
+                    if (!respDateStr || respDateStr === '') {
+                        daysCell.className = 'days-cell ' + getColorClass(days);
+                    } else {
+                        daysCell.className = '';
+                    }
+                }
+            });
+        }
+        
+        // Update on page load
+        window.addEventListener('DOMContentLoaded', updateDays);
+    </script>
+</head>
+<body>
+    <h1>PhD Applications Status Tracker</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Position</th>
+                <th>Pre-selected</th>
+                <th>Interview</th>
+                <th>Final Status</th>
+                <th>Date of Application</th>
+                <th>Date of Response</th>
+                <th>Days Past</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="num-cell">1</td>
+                <td>CERN Early Career</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>7.6.2025</td>
+                <td>14.7.2025</td>
+                <td>37 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">2</td>
+                <td>CERN NGT</td>
+                <td>Successful ✅</td>
+                <td>Accepted ✅</td>
+                <td>Failed ❌</td>
+                <td>23.7.2025</td>
+                <td>6.10.2025</td>
+                <td>75 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">3</td>
+                <td>CERN Doctoral POOL 2025</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>23.7.2025</td>
+                <td>27.11.2025</td>
+                <td>127 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">4</td>
+                <td>Helsinki CMS</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>15.8.2025</td>
+                <td>3.10.2025</td>
+                <td>49 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">5</td>
+                <td>NIJMEGEN ATLAS</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>12.10.2025</td>
+                <td>23.10.2025</td>
+                <td>11 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">6</td>
+                <td>Dortmund RNO-G</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>20.10.2025</td>
+                <td>5.2.2026</td>
+                <td>108 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">7</td>
+                <td>NIKHEF ATLAS 1</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>18.10.2025</td>
+                <td>18.12.2025</td>
+                <td>61 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">8</td>
+                <td>DESY ATLAS</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>27.10.2025</td>
+                <td></td>
+                <td class="days-cell days-101-plus">104 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">9</td>
+                <td>NIKHEF ATLAS 2</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>29.10.2025</td>
+                <td>18.12.2025</td>
+                <td>50 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">10</td>
+                <td>EPFL LHCb</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>28.10.2025</td>
+                <td>27.11.2025</td>
+                <td>30 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">11</td>
+                <td>MAINZ SHIP</td>
+                <td>Successful ✅</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>20.11.2025</td>
+                <td>23.1.2026</td>
+                <td>64 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">12</td>
+                <td>DESY CMS</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>Failed ❌</td>
+                <td>18.11.2025</td>
+                <td>01.01.26</td>
+                <td>44 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">13</td>
+                <td>ZURICH ETH LEAP-40</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>15.11.2025</td>
+                <td></td>
+                <td class="days-cell days-76-100">85 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">14</td>
+                <td>BONN AI for Physics</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>19.12.2025</td>
+                <td></td>
+                <td class="days-cell days-51-75">51 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">15</td>
+                <td>Freiburg SM</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>29.12.2025</td>
+                <td></td>
+                <td class="days-cell days-31-50">41 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">16</td>
+                <td>Hamburg</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>10.1.2026</td>
+                <td></td>
+                <td class="days-cell days-15-30">29 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">17</td>
+                <td>AALTO Summer Research</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>13.1.2026</td>
+                <td></td>
+                <td class="days-cell days-15-30">26 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">18</td>
+                <td>München IMPRS</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>19.1.2026</td>
+                <td></td>
+                <td class="days-cell days-15-30">20 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">19</td>
+                <td>CERN QUANTUM</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>2.2.2026</td>
+                <td></td>
+                <td class="days-cell days-0-7">6 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">20</td>
+                <td>CERN Doctoral POOL 2026</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>2.2.2026</td>
+                <td></td>
+                <td class="days-cell days-0-7">6 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">21</td>
+                <td>CERN STEAM Academy</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>2.2.2026</td>
+                <td></td>
+                <td class="days-cell days-0-7">6 days</td>
+            </tr>
+            <tr>
+                <td class="num-cell">22</td>
+                <td>Karlsruhe KATRIN</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>7.2.2026</td>
+                <td></td>
+                <td class="days-cell days-0-7">1 day</td>
+            </tr>
+            <tr>
+                <td class="num-cell">23</td>
+                <td>NIKHEF ATLAS 3</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>8.2.2026</td>
+                <td></td>
+                <td class="days-cell days-0-7">0 days</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
