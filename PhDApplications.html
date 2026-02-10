@@ -36,6 +36,23 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #34495e;
+        }
+        th.sortable::after {
+            content: ' ↕';
+            opacity: 0.5;
+        }
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
         }
         .num-cell {
             text-align: center;
@@ -136,8 +153,76 @@
             });
         }
         
+        function sortTable(columnIndex, th) {
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Determine sort direction
+            const currentSort = th.classList.contains('sort-asc') ? 'asc' : 
+                               th.classList.contains('sort-desc') ? 'desc' : null;
+            let newSort = currentSort === 'asc' ? 'desc' : 'asc';
+            
+            // Remove sort classes from all headers
+            document.querySelectorAll('th').forEach(header => {
+                header.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            // Add sort class to current header
+            th.classList.add('sort-' + newSort);
+            
+            // Sort rows
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+                
+                // Handle empty values
+                if (!aValue && !bValue) return 0;
+                if (!aValue) return 1;
+                if (!bValue) return -1;
+                
+                // Try to parse as number (for Days Past column)
+                const aNum = parseFloat(aValue);
+                const bNum = parseFloat(bValue);
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return newSort === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                // Try to parse as date
+                const aDate = parseDate(aValue);
+                const bDate = parseDate(bValue);
+                if (aDate && bDate) {
+                    return newSort === 'asc' ? aDate - bDate : bDate - aDate;
+                }
+                
+                // Default to string comparison
+                return newSort === 'asc' ? 
+                    aValue.localeCompare(bValue) : 
+                    bValue.localeCompare(aValue);
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // Update row numbers
+            rows.forEach((row, index) => {
+                row.querySelector('.num-cell').textContent = index + 1;
+            });
+        }
+        
+        function initializeSorting() {
+            const headers = document.querySelectorAll('th');
+            headers.forEach((th, index) => {
+                th.classList.add('sortable');
+                th.addEventListener('click', () => sortTable(index, th));
+            });
+        }
+        
         // Update on page load
-        window.addEventListener('DOMContentLoaded', updateDays);
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDays();
+            initializeSorting();
+        });
     </script>
 </head>
 <body>
