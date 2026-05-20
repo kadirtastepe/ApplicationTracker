@@ -63,6 +63,9 @@ CSS = """\
             color: #666;
             width: 30px;
         }
+        tr.highlight-row {
+            background-color: #fffde7;  /* very light yellow */
+        }
         tr:hover {
             background-color: #f1f1f1;
         }
@@ -288,6 +291,11 @@ def build_row(index, row):
     app_date    = h(row[4].strip())                           if len(row) > 4 else ''
     resp_date   = h(row[5].strip())                           if len(row) > 5 else ''
 
+    # Decide if this row should be highlighted: has "Successful" but no "Failed"
+    raw_success = any("Successful" in (c or "") for c in row)
+    raw_failed  = any("Failed"     in (c or "") for c in row)
+    row_class = ' class="highlight-row"' if raw_success and not raw_failed else ''
+
     days = calculate_days(app_date, resp_date)
     days_text = (f'{days} day' if days == 1 else f'{days} days') if days is not None else ''
     is_pending = not (row[5].strip() if len(row) > 5 else '')
@@ -298,7 +306,7 @@ def build_row(index, row):
         days_td = f'<td>{days_text}</td>'
 
     return (
-        f'            <tr>\n'
+        f'            <tr{row_class}>\n'
         f'                <td class="num-cell">{index}</td>\n'
         f'                <td>{position}</td>\n'
         f'                <td>{preselected}</td>\n'
